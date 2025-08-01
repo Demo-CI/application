@@ -122,10 +122,10 @@ jobs:
             "ref": "${{ github.ref }}",
             "ref_name": "${{ github.ref_name }}",
             "actor": "${{ github.actor }}",
-            "event_name": "${{ github.event_name }}",
             "commit_message": "${{ github.event.pull_request.title || needs.parse-comment.outputs.reason || inputs.reason || 'Manual trigger' }}",
             "build_type": "${{ needs.parse-comment.outputs.build_type || inputs.build_type || 'release' }}",
-            "save_logs": "${{ needs.parse-comment.outputs.save_logs || inputs.save_logs || 'false' }}"
+            "save_logs": "${{ needs.parse-comment.outputs.save_logs || inputs.save_logs || 'false' }}",
+            "pr_number": "${{ github.event.pull_request.number || '' }}"
           }
     
     - name: Build trigger summary
