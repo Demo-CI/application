@@ -1,11 +1,16 @@
 name: Trigger Centralized Build
 
 on:
-  push:
-    branches: [main, develop]
-  
   pull_request:
-    branches: [main]
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+  
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual trigger'
+        required: false
+        default: 'Manual trigger'
 
 jobs:
   trigger-build:
@@ -33,7 +38,7 @@ jobs:
             "ref_name": "${{ github.ref_name }}",
             "actor": "${{ github.actor }}",
             "event_name": "${{ github.event_name }}",
-            "commit_message": "${{ github.event.head_commit.message || github.event.pull_request.title }}",
+            "commit_message": "${{ github.event.pull_request.title || inputs.reason || 'Manual trigger' }}",
             "timestamp": "${{ steps.commit-info.outputs.timestamp }}",
             "pr_number": "${{ github.event.pull_request.number || '' }}"
           }
