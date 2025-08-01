@@ -1,6 +1,6 @@
 # C++ Calculator Application
 
-[![Build and Test C++ Application](https://github.com/Demo-CI/application/actions/workflows/build.yml/badge.svg)](https://github.com/Demo-CI/application/actions/workflows/build.yml)
+[![Build and Test Application](https://github.com/Demo-CI/application/actions/workflows/build.yml/badge.svg)](https://github.com/Demo-CI/application/actions/workflows/build.yml)
 [![Generate Doxygen Documentation](https://github.com/Demo-CI/application/actions/workflows/documentation.yml/badge.svg)](https://github.com/Demo-CI/application/actions/workflows/documentation.yml)
 
 A modular C++ calculator application with advanced mathematical functions, designed to demonstrate best practices in C++ development and continuous integration with GitHub Actions.

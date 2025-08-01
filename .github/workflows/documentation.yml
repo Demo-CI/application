@@ -2,7 +2,7 @@ name: Generate Doxygen Documentation
 
 on:
   workflow_run:
-    workflows: ["Build and Test C++ Application"]
+    workflows: ["Build and Test Application"]
     types:
       - completed
     branches: [ main, develop ]
