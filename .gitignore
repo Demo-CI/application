@@ -1,0 +1,29 @@
+# Build artifacts
+calculator
+test_runner
+*.o
+*.obj
+*.exe
+build/
+
+# Debug files
+*.pdb
+*.dSYM/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Log files
+*.log
