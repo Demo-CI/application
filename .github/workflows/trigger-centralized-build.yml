@@ -5,15 +5,100 @@ on:
     branches: [main, develop]
     types: [opened, synchronize, reopened]
   
+  issue_comment:
+    types: [created]
+  
   workflow_dispatch:
     inputs:
       reason:
         description: 'Reason for manual trigger'
         required: false
         default: 'Manual trigger'
+      build_type:
+        description: 'Build type (debug/release)'
+        required: false
+        default: 'release'
+        type: choice
+        options:
+          - debug
+          - release
+      save_logs:
+        description: 'Save build logs'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
+  parse-comment:
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '{')
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.parse.outputs.should_build }}
+      build_type: ${{ steps.parse.outputs.build_type }}
+      save_logs: ${{ steps.parse.outputs.save_logs }}
+      reason: ${{ steps.parse.outputs.reason }}
+    
+    steps:
+    - name: Parse JSON comment
+      id: parse
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const comment = context.payload.comment.body;
+          
+          // Look for JSON blocks in the comment
+          const jsonMatch = comment.match(/```json\s*(\{[\s\S]*?\})\s*```/) || 
+                           comment.match(/(\{[\s\S]*?\})/);
+          
+          if (!jsonMatch) {
+            console.log('No JSON found in comment');
+            core.setOutput('should_build', 'false');
+            return;
+          }
+          
+          try {
+            const config = JSON.parse(jsonMatch[1]);
+            console.log('Parsed config:', config);
+            
+            // Validate and set defaults
+            const buildType = config.build_type === 'debug' ? 'debug' : 'release';
+            const saveLogs = config.save_logs === true || config.save_logs === 'true';
+            const reason = config.reason || `Comment trigger: ${buildType} build`;
+            
+            core.setOutput('should_build', 'true');
+            core.setOutput('build_type', buildType);
+            core.setOutput('save_logs', saveLogs.toString());
+            core.setOutput('reason', reason);
+            
+            // Add reaction to comment
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: '+1'
+            });
+            
+          } catch (error) {
+            console.log('Invalid JSON in comment:', error.message);
+            core.setOutput('should_build', 'false');
+            
+            // Add confused reaction to comment
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'confused'
+            });
+          }
+
   trigger-build:
+    needs: [parse-comment]
+    if: |
+      always() && (
+        github.event_name == 'pull_request' ||
+        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'issue_comment' && needs.parse-comment.outputs.should_build == 'true')
+      )
     runs-on: ubuntu-latest
     
     steps:
@@ -38,9 +123,9 @@ jobs:
             "ref_name": "${{ github.ref_name }}",
             "actor": "${{ github.actor }}",
             "event_name": "${{ github.event_name }}",
-            "commit_message": "${{ github.event.pull_request.title || inputs.reason || 'Manual trigger' }}",
-            "timestamp": "${{ steps.commit-info.outputs.timestamp }}",
-            "pr_number": "${{ github.event.pull_request.number || '' }}"
+            "commit_message": "${{ github.event.pull_request.title || needs.parse-comment.outputs.reason || inputs.reason || 'Manual trigger' }}",
+            "build_type": "${{ needs.parse-comment.outputs.build_type || inputs.build_type || 'release' }}",
+            "save_logs": "${{ needs.parse-comment.outputs.save_logs || inputs.save_logs || 'false' }}"
           }
     
     - name: Build trigger summary
