@@ -132,8 +132,14 @@ Calculation History:
 
 Total calculations performed: 4
 
+Accessing calculation history directly:
+History contains 4 results: 39.8, 56, 74.5, 7
+
 Testing Error Handling:
 Caught expected error: Division by zero is not allowed
+
+Clearing calculation history...
+History size after clearing: 0
 
 Application completed successfully!
 ```
@@ -179,9 +185,9 @@ doxygen Doxyfile
 firefox docs/html/index.html
 ```
 
-## API Documentation {#api-documentation}
+## API Documentation
 
-### Calculator Class {#calculator-class}
+### Calculator Class
 
 The Calculator class provides basic arithmetic operations with history tracking.
 
@@ -199,7 +205,7 @@ public:
 };
 ```
 
-### MathUtils Namespace {#mathutils-namespace}
+### MathUtils Namespace
 
 The MathUtils namespace provides advanced mathematical utility functions.
 
