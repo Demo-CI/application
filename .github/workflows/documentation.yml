@@ -1,0 +1,108 @@
+name: Generate Doxygen Documentation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual triggering
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Show Ubuntu version
+      run: |
+        echo "=== Ubuntu Version Information ==="
+        lsb_release -a
+        echo "Kernel version:"
+        uname -r
+        echo "Architecture:"
+        uname -m
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y doxygen graphviz
+    
+    - name: Verify Doxyfile exists
+      run: |
+        if [ -f "Doxyfile" ]; then
+          echo "✅ Doxyfile found in repository"
+          doxygen --version
+          dot -V
+          echo "Doxyfile configuration:"
+          head -10 Doxyfile
+        else
+          echo "❌ ERROR: Doxyfile not found!"
+          exit 1
+        fi
+    
+    - name: Generate documentation
+      run: |
+        echo "Generating Doxygen documentation using repository Doxyfile..."
+        doxygen Doxyfile
+        echo "=== Documentation Structure ==="
+        ls -la docs/
+        if [ -d "docs/html" ]; then
+          echo "✅ HTML documentation generated successfully"
+          ls -la docs/html/ | head -10
+          echo "Total files: $(find docs/html -type f | wc -l)"
+        else
+          echo "❌ ERROR: HTML documentation not found!"
+          exit 1
+        fi
+    
+    - name: Upload documentation artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: doxygen-documentation
+        path: docs/
+        retention-days: 30
+    
+    - name: Setup Pages
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: actions/configure-pages@v4
+    
+    - name: Upload to GitHub Pages
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: docs/html
+    
+    - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      id: deployment
+      uses: actions/deploy-pages@v4
+    
+    - name: Documentation summary
+      if: always()
+      run: |
+        echo "=== Documentation Generation Summary ==="
+        echo "✅ Doxygen configuration used from repository"
+        echo "✅ Documentation generated"
+        echo "✅ Artifacts uploaded"
+        if [ "${{ github.ref }}" == "refs/heads/main" ] && [ "${{ github.event_name }}" == "push" ]; then
+          echo "✅ Documentation deployed to GitHub Pages"
+          echo "📖 Documentation URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          echo "🔗 Deployment URL: ${{ steps.deployment.outputs.page_url }}"
+        else
+          echo "ℹ️  GitHub Pages deployment skipped (not main branch push)"
+        fi
+        echo "📁 Documentation artifacts available for download"

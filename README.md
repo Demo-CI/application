@@ -1,6 +1,7 @@
 # C++ Calculator Application
 
 [![Build and Test C++ Application](https://github.com/Demo-CI/application/actions/workflows/build.yml/badge.svg)](https://github.com/Demo-CI/application/actions/workflows/build.yml)
+[![Generate Doxygen Documentation](https://github.com/Demo-CI/application/actions/workflows/documentation.yml/badge.svg)](https://github.com/Demo-CI/application/actions/workflows/documentation.yml)
 
 A modular C++ calculator application with advanced mathematical functions, designed to demonstrate best practices in C++ development and continuous integration with GitHub Actions.
 
@@ -32,7 +33,8 @@ A modular C++ calculator application with advanced mathematical functions, desig
 ├── build/                 # Build artifacts (auto-generated)
 ├── .github/
 │   └── workflows/
-│       └── build.yml      # GitHub Actions CI/CD pipeline
+│       ├── build.yml        # Main CI/CD pipeline
+│       └── documentation.yml # Documentation generation
 ├── Makefile              # Build configuration
 ├── README.md             # This file
 └── .gitignore           # Git ignore rules
@@ -72,6 +74,12 @@ make analyze
 
 # Format code (requires clang-format)
 make format
+
+# Generate documentation (requires doxygen)
+make docs
+
+# Clean documentation
+make clean-docs
 ```
 
 ### Advanced Build Options
@@ -138,6 +146,37 @@ make test
 
 # Run only unit tests
 ./test_runner
+```
+
+## Documentation
+
+### API Documentation
+
+Complete API documentation is automatically generated using Doxygen and is available online:
+
+- **📖 [Online Documentation](https://Demo-CI.github.io/application/)** - Browse the complete API reference
+- **📥 [Download Documentation](https://github.com/Demo-CI/application/actions/workflows/documentation.yml)** - Download the latest documentation artifacts
+
+The documentation includes:
+- **Class diagrams** with UML visualization
+- **Call graphs** showing function relationships
+- **Include dependency graphs**
+- **Detailed API reference** with examples
+- **Source code browsing** with syntax highlighting
+
+### Generating Documentation Locally
+
+To generate documentation locally:
+
+```bash
+# Install Doxygen and Graphviz
+sudo apt-get install doxygen graphviz
+
+# Generate documentation
+doxygen Doxyfile
+
+# Open documentation
+firefox docs/html/index.html
 ```
 
 ## API Documentation

@@ -6,6 +6,9 @@ test_runner
 *.exe
 build/
 
+# Documentation
+docs/
+
 # Debug files
 *.pdb
 *.dSYM/

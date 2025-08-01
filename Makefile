@@ -97,6 +97,22 @@ format:
 # Show project structure
 structure:
 	@echo "Project Structure:"
-	@tree -I 'build|.git' . || find . -type f -name "*.cpp" -o -name "*.h" -o -name "Makefile" -o -name "*.md" | sort
+	@tree -I 'build|.git|docs' . || find . -type f -name "*.cpp" -o -name "*.h" -o -name "Makefile" -o -name "*.md" | sort
 
-.PHONY: all debug test run clean install-deps analyze format structure
+# Generate documentation (requires doxygen)
+docs:
+	@if command -v doxygen >/dev/null 2>&1; then \
+		echo "Generating documentation..."; \
+		doxygen Doxyfile; \
+		echo "Documentation generated in docs/html/"; \
+		echo "Open docs/html/index.html in your browser"; \
+	else \
+		echo "doxygen not found, please install: sudo apt-get install doxygen graphviz"; \
+	fi
+
+# Clean documentation
+clean-docs:
+	@echo "Cleaning documentation..."
+	@rm -rf docs/
+
+.PHONY: all debug test run clean install-deps analyze format structure docs clean-docs
