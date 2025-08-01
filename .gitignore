@@ -6,6 +6,9 @@ test_runner
 *.exe
 build/
 
+# External dependencies (fetched during build)
+deps/
+
 # Documentation
 docs/
 

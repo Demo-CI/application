@@ -1,13 +1,33 @@
-# Makefile for C++ Calculator Application
+# Makefile for C++ Calculator Application with External Library Support
 
 # Compiler settings
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -Iinclude
 DEBUG_FLAGS = -std=c++17 -Wall -Wextra -g -O0 -Iinclude
 
+# External library settings - auto-detect repo vs standalone
+ifeq ($(wildcard ../.repo),../.repo)
+    # We're in a repo workspace - use repo-managed dependency
+    EXTERNAL_LIB_DIR = ../libs/calculator
+    DEPENDENCY_MODE = repo
+    $(info ✅ Detected repo workspace - using repo-managed static library)
+else
+    # Standalone mode - use traditional dependency fetching
+    EXTERNAL_LIB_DIR = deps/static_library
+    DEPENDENCY_MODE = standalone
+    $(info ⚠️  Standalone mode - using external dependency fetching)
+endif
+
+EXTERNAL_LIB_INCLUDE = $(EXTERNAL_LIB_DIR)/include
+EXTERNAL_LIB_PATH = $(EXTERNAL_LIB_DIR)/lib/libcalculator.a
+EXTERNAL_LIB_NAME = calculator
+
+# Update flags to include external library
+CXXFLAGS += -I$(EXTERNAL_LIB_INCLUDE)
+DEBUG_FLAGS += -I$(EXTERNAL_LIB_INCLUDE)
+
 # Directories
 SRC_DIR = src
-LIB_DIR = lib
 INCLUDE_DIR = include
 TEST_DIR = tests
 BUILD_DIR = build
@@ -16,41 +36,96 @@ BUILD_DIR = build
 TARGET = calculator
 TEST_TARGET = test_runner
 
-# Source files
+# Source files (no local lib sources since we use external library)
 MAIN_SRC = $(SRC_DIR)/main.cpp
-LIB_SOURCES = $(wildcard $(LIB_DIR)/*.cpp)
 TEST_SRC = $(TEST_DIR)/test_main.cpp
 
 # Object files
-LIB_OBJECTS = $(LIB_SOURCES:$(LIB_DIR)/%.cpp=$(BUILD_DIR)/%.o)
 TEST_OBJECTS = $(TEST_SRC:$(TEST_DIR)/%.cpp=$(BUILD_DIR)/%.o)
 
 # Default target
-all: $(TARGET)
+all: check-deps $(TARGET)
+
+# Check if external library dependency exists
+check-deps:
+	@echo "Checking external library dependencies..."
+	@if [ ! -d "$(EXTERNAL_LIB_DIR)" ]; then \
+		echo "❌ External library not found at $(EXTERNAL_LIB_DIR)"; \
+		echo "Run 'make fetch-deps' to download the library"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(EXTERNAL_LIB_PATH)" ]; then \
+		echo "❌ Library file not found: $(EXTERNAL_LIB_PATH)"; \
+		echo "Run 'make build-deps' to build the library"; \
+		exit 1; \
+	fi
+	@echo "✅ External library dependencies satisfied"
+
+# Fetch external library dependency
+fetch-deps:
+	@echo "Fetching external library dependency..."
+	@if [ ! -d "$(EXTERNAL_LIB_DIR)" ]; then \
+		mkdir -p deps; \
+		cp -r ../static_library $(EXTERNAL_LIB_DIR); \
+		echo "✅ External library copied from local directory"; \
+	else \
+		echo "✅ External library already exists"; \
+	fi
+
+# Build external library dependency (mode-aware)
+build-deps:
+ifeq ($(DEPENDENCY_MODE),repo)
+	@echo "Building repo-managed static library dependency..."
+	@if [ ! -d "$(EXTERNAL_LIB_DIR)" ]; then \
+		echo "❌ Repo-managed library not found at $(EXTERNAL_LIB_DIR)"; \
+		echo "Make sure you're in a properly synced repo workspace"; \
+		exit 1; \
+	fi
+	@cd $(EXTERNAL_LIB_DIR) && make clean && make static
+	@echo "✅ Repo-managed external library built successfully"
+else
+	@$(MAKE) build-deps-standalone
+endif
+
+# Build external library dependency (standalone mode)
+build-deps-standalone: fetch-deps
+	@echo "Building standalone external library dependency..."
+	@cd $(EXTERNAL_LIB_DIR) && make clean && make static
+	@echo "✅ Standalone external library built successfully"
+
+# Repo-specific build target (for repo workspaces)
+build-deps-repo:
+	@echo "Building repo-managed dependencies..."
+	@if [ ! -d "../libs/calculator" ]; then \
+		echo "❌ Not in a repo workspace or library not synced"; \
+		echo "Run 'repo sync' from workspace root"; \
+		exit 1; \
+	fi
+	@cd ../libs/calculator && make clean && make static
+	@echo "✅ Repo-managed dependencies built successfully"
+
+# Default target
+all: check-deps $(TARGET)
 
 # Create build directory
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-# Build library object files
-$(BUILD_DIR)/%.o: $(LIB_DIR)/%.cpp | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
 # Build test object files
 $(BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Build the main application
-$(TARGET): $(MAIN_SRC) $(LIB_OBJECTS) | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(MAIN_SRC) $(LIB_OBJECTS)
+# Build the main application with external library
+$(TARGET): $(MAIN_SRC) $(EXTERNAL_LIB_PATH) | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(MAIN_SRC) $(EXTERNAL_LIB_PATH)
 
-# Build the test executable
-$(TEST_TARGET): $(TEST_OBJECTS) $(LIB_OBJECTS) | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -o $(TEST_TARGET) $(TEST_OBJECTS) $(LIB_OBJECTS)
+# Build the test executable with external library
+$(TEST_TARGET): $(TEST_OBJECTS) $(EXTERNAL_LIB_PATH) | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -o $(TEST_TARGET) $(TEST_OBJECTS) $(EXTERNAL_LIB_PATH)
 
 # Debug build
 debug: CXXFLAGS = $(DEBUG_FLAGS)
-debug: $(TARGET)
+debug: check-deps $(TARGET)
 
 # Build and run tests
 test: $(TEST_TARGET)
@@ -64,41 +139,57 @@ test: $(TEST_TARGET)
 run: $(TARGET)
 	./$(TARGET)
 
-# Clean build artifacts
+# Clean build artifacts (keep external dependencies)
 clean:
 	rm -f $(TARGET) $(TEST_TARGET)
 	rm -rf $(BUILD_DIR)
 
-# Install dependencies (for CI)
-install-deps:
-	@echo "Installing build dependencies..."
-	@which $(CXX) > /dev/null || (echo "$(CXX) not found, please install build-essential" && exit 1)
-	@echo "Build dependencies are ready"
+# Clean everything including dependencies
+clean-all: clean
+	rm -rf deps/
 
-# Static analysis (if cppcheck is available)
+# Update external library dependency
+update-deps:
+	@echo "Updating external library dependency..."
+	@if [ -d "$(EXTERNAL_LIB_DIR)" ]; then \
+		cd $(EXTERNAL_LIB_DIR) && git pull origin main; \
+		make build-deps; \
+	else \
+		make build-deps; \
+	fi
+	@echo "✅ External library updated"
+
+# Install dependencies (for CI) - includes external library
+install-deps:
+	@echo "Installing build dependencies and external library..."
+	@which $(CXX) > /dev/null || (echo "$(CXX) not found, please install build-essential" && exit 1)
+	make build-deps
+	@echo "Build dependencies and external library are ready"
+
+# Static analysis (if cppcheck is available) - updated for external lib structure
 analyze:
 	@if command -v cppcheck >/dev/null 2>&1; then \
 		echo "Running static analysis..."; \
-		cppcheck --enable=all --std=c++17 --suppress=missingIncludeSystem $(SRC_DIR) $(LIB_DIR) $(INCLUDE_DIR); \
+		cppcheck --enable=all --std=c++17 --suppress=missingIncludeSystem $(SRC_DIR) $(TEST_DIR); \
 	else \
 		echo "cppcheck not found, skipping static analysis"; \
 	fi
 
-# Format code (if clang-format is available)
+# Format code (if clang-format is available) - updated for new structure
 format:
 	@if command -v clang-format >/dev/null 2>&1; then \
 		echo "Formatting code..."; \
-		find $(SRC_DIR) $(LIB_DIR) $(INCLUDE_DIR) $(TEST_DIR) -name "*.cpp" -o -name "*.h" | xargs clang-format -i; \
+		find $(SRC_DIR) $(TEST_DIR) -name "*.cpp" -o -name "*.h" | xargs clang-format -i; \
 		echo "Code formatting completed"; \
 	else \
 		echo "clang-format not found, skipping code formatting"; \
 	fi
 
-# Check code formatting (requires clang-format)
+# Check code formatting (requires clang-format) - updated for new structure
 format-check:
 	@if command -v clang-format >/dev/null 2>&1; then \
 		echo "Checking code formatting..."; \
-		format_issues=$$(find $(SRC_DIR) $(LIB_DIR) $(INCLUDE_DIR) $(TEST_DIR) -name "*.cpp" -o -name "*.h" | xargs clang-format -n -Werror 2>&1); \
+		format_issues=$$(find $(SRC_DIR) $(TEST_DIR) -name "*.cpp" -o -name "*.h" | xargs clang-format -n -Werror 2>&1); \
 		if [ -n "$$format_issues" ]; then \
 			echo "Code formatting issues found:"; \
 			echo "$$format_issues"; \
@@ -111,10 +202,14 @@ format-check:
 		echo "clang-format not found, skipping format check"; \
 	fi
 
-# Show project structure
+# Show project structure with external dependencies
 structure:
-	@echo "Project Structure:"
-	@tree -I 'build|.git|docs' . || find . -type f -name "*.cpp" -o -name "*.h" -o -name "Makefile" -o -name "*.md" | sort
+	@echo "Application Project Structure (with External Dependencies):"
+	@tree -I 'build|.git|docs|deps' . || find . -type f -name "*.cpp" -o -name "*.h" -o -name "Makefile" -o -name "*.md" | sort
+	@if [ -d "deps" ]; then \
+		echo "\nExternal Dependencies:"; \
+		tree deps/ || ls -la deps/; \
+	fi
 
 # Generate documentation (requires doxygen)
 docs:
@@ -132,4 +227,4 @@ clean-docs:
 	@echo "Cleaning documentation..."
 	@rm -rf docs/
 
-.PHONY: all debug test run clean install-deps analyze format format-check structure docs clean-docs
+.PHONY: all debug test run clean clean-all install-deps analyze format format-check structure docs clean-docs check-deps fetch-deps build-deps build-deps-standalone build-deps-repo update-deps

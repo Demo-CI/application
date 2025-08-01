@@ -1,0 +1,84 @@
+name: Trigger Centralized Build
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'tests/**'
+      - 'Makefile'
+      - 'CMakeLists.txt'
+      - 'Doxyfile'
+  
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'tests/**'
+      - 'Makefile'
+      - 'CMakeLists.txt'
+      - 'Doxyfile'
+
+jobs:
+  trigger-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Get commit information
+      id: commit-info
+      run: |
+        echo "short-sha=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+        echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+    
+    - name: Trigger centralized build
+      uses: peter-evans/repository-dispatch@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: Demo-CI/build
+        event-type: application-updated
+        client-payload: |
+          {
+            "repository": "${{ github.repository }}",
+            "sha": "${{ github.sha }}",
+            "short_sha": "${{ steps.commit-info.outputs.short-sha }}",
+            "ref": "${{ github.ref }}",
+            "ref_name": "${{ github.ref_name }}",
+            "actor": "${{ github.actor }}",
+            "event_name": "${{ github.event_name }}",
+            "commit_message": "${{ github.event.head_commit.message || github.event.pull_request.title }}",
+            "timestamp": "${{ steps.commit-info.outputs.timestamp }}",
+            "pr_number": "${{ github.event.pull_request.number || '' }}"
+          }
+    
+    - name: Build trigger summary
+      run: |
+        echo "## 🚀 Centralized Build Triggered" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Repository | \`${{ github.repository }}\` |" >> $GITHUB_STEP_SUMMARY
+        echo "| Commit | \`${{ steps.commit-info.outputs.short-sha }}\` |" >> $GITHUB_STEP_SUMMARY
+        echo "| Branch | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+        echo "| Event | \`${{ github.event_name }}\` |" >> $GITHUB_STEP_SUMMARY
+        echo "| Actor | \`${{ github.actor }}\` |" >> $GITHUB_STEP_SUMMARY
+        echo "| Timestamp | \`${{ steps.commit-info.outputs.timestamp }}\` |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "The centralized build system in [Demo-CI/build](https://github.com/Demo-CI/build) has been notified and will:" >> $GITHUB_STEP_SUMMARY
+        echo "- Build the static library dependency" >> $GITHUB_STEP_SUMMARY
+        echo "- Build the application with the updated code" >> $GITHUB_STEP_SUMMARY
+        echo "- Run comprehensive tests and analysis" >> $GITHUB_STEP_SUMMARY
+        echo "- Generate documentation and reports" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📊 **[View Build Progress →](https://github.com/Demo-CI/build/actions)**" >> $GITHUB_STEP_SUMMARY
+        
+        # Console output
+        echo "=== Application Repository: Build Trigger ==="
+        echo "✅ Repository: ${{ github.repository }}"
+        echo "🔧 Commit: ${{ steps.commit-info.outputs.short-sha }}"
+        echo "🌿 Branch: ${{ github.ref_name }}"
+        echo "📡 Event: ${{ github.event_name }}"
+        echo "👤 Actor: ${{ github.actor }}"
+        echo "🚀 Centralized build triggered in Demo-CI/build"
+        echo "📊 Monitor progress: https://github.com/Demo-CI/build/actions"

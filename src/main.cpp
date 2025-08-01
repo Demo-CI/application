@@ -1,5 +1,5 @@
-#include "../include/Calculator.h"
-#include "../include/MathUtils.h"
+#include "Calculator.h"
+#include "MathUtils.h"
 #include <iostream>
 #include <stdexcept>
 #include <string>
