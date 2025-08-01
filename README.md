@@ -213,21 +213,32 @@ namespace MathUtils {
 
 ## GitHub Actions CI/CD
 
-This project includes a comprehensive GitHub Actions workflow that:
+This project includes comprehensive GitHub Actions workflows:
 
-- **Multi-Compiler Support**: Tests with both g++ and clang++
+### Build and Test Workflow
 - **Multi-Configuration**: Builds in both Debug and Release modes
 - **Multi-OS Testing**: Tests on multiple Ubuntu versions
 - **Unit Testing**: Runs comprehensive test suite
 - **Static Analysis**: Performs code quality checks with cppcheck
-- **Code Formatting**: Validates code formatting with clang-format
 - **Performance Testing**: Runs optimized builds for performance validation
 - **Artifact Upload**: Stores build artifacts for download
 
+### Documentation Workflow
+- **Dependency**: Only runs after successful build completion
+- **Automatic Generation**: Creates comprehensive API documentation
+- **GitHub Pages**: Deploys to live website (main branch only)
+- **Artifact Upload**: Provides downloadable documentation
+- **Smart Triggering**: Only generates docs for working code
+
 ### Workflow Triggers
 
+**Build Workflow:**
 - Push to `main` or `develop` branches
 - Pull requests to `main` branch
+
+**Documentation Workflow:**
+- Triggered automatically after successful build completion
+- Manual triggering available via workflow_dispatch
 
 ## Development
 
