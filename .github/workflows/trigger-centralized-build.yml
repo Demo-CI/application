@@ -3,23 +3,9 @@ name: Trigger Centralized Build
 on:
   push:
     branches: [main, develop]
-    paths:
-      - 'src/**'
-      - 'include/**'
-      - 'tests/**'
-      - 'Makefile'
-      - 'CMakeLists.txt'
-      - 'Doxyfile'
   
   pull_request:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'include/**'
-      - 'tests/**'
-      - 'Makefile'
-      - 'CMakeLists.txt'
-      - 'Doxyfile'
 
 jobs:
   trigger-build:
