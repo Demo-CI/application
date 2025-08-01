@@ -1,4 +1,4 @@
-# C++ Calculator Application
+# C++ Calculator Application <!-- {#mainpage} -->
 
 [![Build and Test Application](https://github.com/Demo-CI/application/actions/workflows/build.yml/badge.svg)](https://github.com/Demo-CI/application/actions/workflows/build.yml)
 [![Generate Doxygen Documentation](https://github.com/Demo-CI/application/actions/workflows/documentation.yml/badge.svg)](https://github.com/Demo-CI/application/actions/workflows/documentation.yml)
@@ -179,35 +179,39 @@ doxygen Doxyfile
 firefox docs/html/index.html
 ```
 
-## API Documentation
+## API Documentation {#api-documentation}
 
-### Calculator Class
+### Calculator Class {#calculator-class}
+
+The Calculator class provides basic arithmetic operations with history tracking.
 
 ```cpp
 class Calculator {
 public:
-    double add(double a, double b);           // Addition
-    double subtract(double a, double b);      // Subtraction
-    double multiply(double a, double b);      // Multiplication
-    double divide(double a, double b);        // Division (throws on division by zero)
-    void printHistory() const;               // Print calculation history
-    size_t getHistorySize() const;           // Get number of calculations
-    void clearHistory();                     // Clear calculation history
-    const std::vector<double>& getHistory() const; // Get history vector
+    double add(double a, double b);           ///< Addition operation
+    double subtract(double a, double b);      ///< Subtraction operation
+    double multiply(double a, double b);      ///< Multiplication operation
+    double divide(double a, double b);        ///< Division operation (throws on division by zero)
+    void printHistory() const;               ///< Print calculation history
+    size_t getHistorySize() const;           ///< Get number of calculations
+    void clearHistory();                     ///< Clear calculation history
+    const std::vector<double>& getHistory() const; ///< Get history vector
 };
 ```
 
-### MathUtils Namespace
+### MathUtils Namespace {#mathutils-namespace}
+
+The MathUtils namespace provides advanced mathematical utility functions.
 
 ```cpp
 namespace MathUtils {
-    double power(double base, int exponent);           // Power calculation
-    double squareRoot(double value);                   // Square root
-    long long factorial(int n);                        // Factorial
-    bool isPrime(int n);                              // Prime number check
-    double average(const std::vector<double>& numbers); // Vector average
-    double maximum(const std::vector<double>& numbers); // Vector maximum
-    double minimum(const std::vector<double>& numbers); // Vector minimum
+    double power(double base, int exponent);           ///< Power calculation
+    double squareRoot(double value);                   ///< Square root
+    long long factorial(int n);                        ///< Factorial calculation
+    bool isPrime(int n);                              ///< Prime number check
+    double average(const std::vector<double>& numbers); ///< Vector average
+    double maximum(const std::vector<double>& numbers); ///< Vector maximum  
+    double minimum(const std::vector<double>& numbers); ///< Vector minimum
 }
 ```
 

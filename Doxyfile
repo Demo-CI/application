@@ -11,6 +11,9 @@ RECURSIVE              = YES
 FILE_PATTERNS          = *.cpp *.h *.hpp *.md
 EXCLUDE_PATTERNS       = */build/* */.git/* */tests/*
 
+# Use README.md as main page
+USE_MDFILE_AS_MAINPAGE = README.md
+
 # Output settings
 OUTPUT_DIRECTORY       = docs
 GENERATE_HTML          = YES
