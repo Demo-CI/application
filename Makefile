@@ -94,6 +94,23 @@ format:
 		echo "clang-format not found, skipping code formatting"; \
 	fi
 
+# Check code formatting (requires clang-format)
+format-check:
+	@if command -v clang-format >/dev/null 2>&1; then \
+		echo "Checking code formatting..."; \
+		format_issues=$$(find $(SRC_DIR) $(LIB_DIR) $(INCLUDE_DIR) $(TEST_DIR) -name "*.cpp" -o -name "*.h" | xargs clang-format -n -Werror 2>&1); \
+		if [ -n "$$format_issues" ]; then \
+			echo "Code formatting issues found:"; \
+			echo "$$format_issues"; \
+			echo "Run 'make format' to fix formatting issues"; \
+			exit 1; \
+		else \
+			echo "Code formatting is correct"; \
+		fi; \
+	else \
+		echo "clang-format not found, skipping format check"; \
+	fi
+
 # Show project structure
 structure:
 	@echo "Project Structure:"
@@ -115,4 +132,4 @@ clean-docs:
 	@echo "Cleaning documentation..."
 	@rm -rf docs/
 
-.PHONY: all debug test run clean install-deps analyze format structure docs clean-docs
+.PHONY: all debug test run clean install-deps analyze format format-check structure docs clean-docs

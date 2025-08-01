@@ -1,4 +1,4 @@
-# C++ Calculator Application <!-- {#mainpage} -->
+# C++ Calculator Application
 
 [![Build and Test Application](https://github.com/Demo-CI/application/actions/workflows/build.yml/badge.svg)](https://github.com/Demo-CI/application/actions/workflows/build.yml)
 [![Generate Doxygen Documentation](https://github.com/Demo-CI/application/actions/workflows/documentation.yml/badge.svg)](https://github.com/Demo-CI/application/actions/workflows/documentation.yml)
