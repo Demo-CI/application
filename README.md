@@ -1,4 +1,4 @@
-# C++ Calculator Application
+# C++ Calculator Application - Changed
 
 A C++17 calculator application demonstrating usage of external static libraries and centralized CI/CD workflows.
 
