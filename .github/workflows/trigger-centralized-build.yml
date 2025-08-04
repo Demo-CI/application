@@ -8,42 +8,14 @@ on:
   issue_comment:
     types: [created]
   
-  workflow_dispatch:
-    inputs:
-      reason:
-        description: 'Reason for manual trigger'
-        required: false
-        default: 'Manual trigger'
-      build_type:
-        description: 'Build type (debug/release)'
-        required: false
-        default: 'release'
-        type: choice
-        options:
-          - debug
-          - release
-      save_logs:
-        description: 'Save build logs'
-        required: false
-        default: false
-        type: boolean
-
 jobs:
   trigger-build:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout (for composite action)
-      uses: actions/checkout@v4
-      with:
-        repository: Demo-CI/build
-        path: build-repo
-    
-    - name: Trigger centralized build
-      uses: ./build-repo/.github/actions/trigger-build
-      with:
-        repository: 'Demo-CI/application'
-        dispatch_type: 'application-updated'
-        github_token: ${{ secrets.PAT_TOKEN }}
-        manual_reason: ${{ github.event.inputs.reason || 'Manual trigger' }}
-        manual_build_type: ${{ github.event.inputs.build_type || 'release' }}
-        manual_save_logs: ${{ github.event.inputs.save_logs || 'false' }}
+    uses: Demo-CI/build/.github/workflows/reusable-trigger-build.yml@main
+    with:
+      repository: 'Demo-CI/application'
+      dispatch_type: 'application-updated'
+      reason: ${{ github.event.inputs.reason || 'Manual trigger' }}
+      build_type: ${{ github.event.inputs.build_type || 'release' }}
+      save_logs: ${{ github.event.inputs.save_logs || false }}
+    secrets:
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
