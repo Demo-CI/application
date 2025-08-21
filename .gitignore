@@ -1,0 +1,35 @@
+# Build artifacts
+calculator
+test_runner
+*.o
+*.obj
+*.exe
+build/
+
+# External dependencies (fetched during build)
+deps/
+
+# Documentation
+docs/
+
+# Debug files
+*.pdb
+*.dSYM/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Log files
+*.log

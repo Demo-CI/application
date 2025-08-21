@@ -1,0 +1,21 @@
+name: Trigger Centralized Build
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+  
+  issue_comment:
+    types: [created]
+  
+jobs:
+  trigger-build:
+    uses: Demo-CI/build/.github/workflows/reusable-trigger-build.yml@main
+    with:
+      repository: 'Demo-CI/application'
+      dispatch_type: 'application-updated'
+      reason: ${{ github.event.inputs.reason || 'Manual trigger' }}
+      build_type: ${{ github.event.inputs.build_type || 'release' }}
+      save_logs: ${{ github.event.inputs.save_logs || false }}
+    secrets:
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
